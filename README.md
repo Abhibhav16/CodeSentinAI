@@ -1,6 +1,6 @@
-# AutoReview-AI (Phase 1)
+# CodeSentinAI (Phase 1)
 
-AutoReview-AI is a developer-centric command-line interface (CLI) tool that performs static-analysis-driven code auditing and review using a local LLM. By combining fast heuristic classification, AST reduction via Tree-sitter, and structured validation with Pydantic and Instructor, it delivers precise and context-rich code reviews without sending your entire codebase to third-party APIs.
+CodeSentinAI is a developer-centric command-line interface (CLI) and local web dashboard that performs static-analysis-driven code auditing and review using a local LLM. By combining fast heuristic classification, AST reduction via Tree-sitter, and structured validation with Pydantic and Instructor, it delivers precise and context-rich code reviews without sending your entire codebase to third-party APIs.
 
 ---
 
@@ -44,7 +44,7 @@ AutoReview-AI is a developer-centric command-line interface (CLI) tool that perf
 ### 3. Clone & Sync Dependencies
 Clone this repository to your workspace and sync dependencies:
 ```bash
-cd AutoReview-AI
+cd CodeSentinAI
 uv sync
 ```
 
@@ -63,10 +63,10 @@ AUTOREVIEW_MODEL=qwen2.5-coder:7b
 
 ## CLI Usage
 
-The package exposes the command `autoreview` through `uv run`. 
+The package exposes the commands `codesentinai` and `autoreview` through `uv run`.
 
 ```bash
-uv run autoreview review <path> [options]
+uv run codesentinai review <path> [options]
 ```
 
 ### Command Arguments & Options
@@ -81,33 +81,33 @@ uv run autoreview review <path> [options]
 #### 1. Analyze an Algorithmic File
 Run a standard review on a local Python file:
 ```bash
-uv run autoreview review tests/fixtures/sample_dsa.py
+uv run codesentinai review tests/fixtures/sample_dsa.py
 ```
 
 #### 2. Provide Custom Review Questions
 Review a code snippet and ask a targeted question:
 ```bash
-uv run autoreview review tests/fixtures/sample_snippet.py \
+uv run codesentinai review tests/fixtures/sample_snippet.py \
   --question "Are there any file/resource leaks or unclosed file descriptors in this code?"
 ```
 
 #### 3. Output JSON for CI/CD Pipelines
 Dump structured results as JSON to parse programmatically:
 ```bash
-uv run autoreview review tests/fixtures/sample_dsa.py --json
+uv run codesentinai review tests/fixtures/sample_dsa.py --json
 ```
 
 #### 4. Run with a Custom Model
 Override the model used for the review:
 ```bash
-uv run autoreview review tests/fixtures/sample_dsa.py --model llama3.2
+uv run codesentinai review tests/fixtures/sample_dsa.py --model llama3.2
 ```
 
 ---
 
 ## Running the Web Dashboard
 
-AutoReview-AI includes a local web-based dashboard for code auditing.
+CodeSentinAI includes a local web-based dashboard for code auditing.
 
 ### 1. Start the API Server
 Start the FastAPI server using Uvicorn:

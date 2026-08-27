@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("autoreview.api")
 
 app = FastAPI(
-    title="AutoReview-AI Web Backend",
+    title="CodeSentinAI Web Backend",
     description="API server for performing local structured code auditing.",
     version="0.1.0",
 )

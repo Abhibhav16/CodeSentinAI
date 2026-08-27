@@ -10,14 +10,14 @@ from autoreview.ast_reducer import reduce_python_code
 from autoreview.reviewer import run_code_review, OllamaConnectionError, ReviewError
 from autoreview.render import render_rich_output
 
-app = typer.Typer(name="autoreview", help="AutoReview-AI: Developer-centric code auditing CLI tool")
+app = typer.Typer(name="codesentinai", help="CodeSentinAI: Developer-centric code auditing CLI tool")
 console = Console()
 err_console = Console(stderr=True)
 
 @app.callback()
 def main():
     """
-    AutoReview-AI: Developer-centric code auditing CLI tool.
+    CodeSentinAI: Developer-centric code auditing CLI tool.
     """
     pass
 

@@ -52,7 +52,7 @@ def render_rich_output(result: ReviewResult) -> None:
     console.print(
         Panel(
             summary_text,
-            title="[bold white]AutoReview-AI Code Review Summary[/bold white]",
+            title="[bold white]CodeSentinAI Code Review Summary[/bold white]",
             border_style=risk_color,
             expand=False,
         )

@@ -3,92 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoReview-AI Web Dashboard</title>
+    <title>CodeSentinAI Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
+    <header class="app-header">
         <div class="header-container">
-            <h1>AutoReview-AI</h1>
-            <div id="health-badge" class="badge unknown">Checking Ollama Status...</div>
+            <div class="brand-lockup">
+                <span class="brand-mark">CS</span>
+                <div>
+                    <h1>CodeSentinAI</h1>
+                    <p>Local code audits with structured AI findings</p>
+                </div>
+            </div>
+            <div id="health-badge" class="badge unknown">Checking Ollama...</div>
         </div>
     </header>
 
     <main class="container">
-        <!-- Input section -->
-        <section class="card input-section">
-            <h2>Code submission</h2>
-            <form id="review-form">
-                <div class="form-group">
-                    <label for="code-input">Paste Python Code or Git Diff:</label>
-                    <textarea id="code-input" placeholder="Paste your code here..." rows="12"></textarea>
-                </div>
-
-                <div class="form-group row-group">
-                    <div class="col">
-                        <label for="file-input">Or Upload File:</label>
-                        <input type="file" id="file-input" accept=".py,.diff,.patch,.txt">
+        <section class="workspace-grid">
+            <section class="card input-section">
+                <div class="section-heading">
+                    <div>
+                        <h2>Code Submission</h2>
+                        <p>Paste code, upload a patch, and choose the audit lens.</p>
                     </div>
-                    <div class="col">
-                        <label for="mode-select">Audit Mode Override:</label>
-                        <select id="mode-select">
-                            <option value="auto">Auto-Detect</option>
-                            <option value="dsa_problem">DSA Problem</option>
-                            <option value="pr_diff">PR Diff</option>
-                            <option value="snippet">General Snippet</option>
-                        </select>
+                    <span id="input-stats" class="text-pill">0 lines</span>
+                </div>
+                <form id="review-form">
+                    <div class="form-group">
+                        <label for="code-input">Paste Python code or git diff</label>
+                        <textarea id="code-input" placeholder="Paste code, a focused function, or a unified diff..." rows="16"></textarea>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="question-input">Specific Question / Focus Context (Optional):</label>
-                    <input type="text" id="question-input" placeholder="e.g. Is there a potential resource leak or SQL injection?">
-                </div>
+                    <div class="form-group row-group">
+                        <div class="col">
+                            <label for="file-input">Upload file</label>
+                            <input type="file" id="file-input" accept=".py,.diff,.patch,.txt">
+                            <span id="file-name" class="field-note">No file selected</span>
+                        </div>
+                        <div class="col">
+                            <label for="mode-select">Audit mode</label>
+                            <select id="mode-select">
+                                <option value="auto">Auto-Detect</option>
+                                <option value="dsa_problem">DSA Problem</option>
+                                <option value="pr_diff">PR Diff</option>
+                                <option value="snippet">General Snippet</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <button type="submit" id="submit-btn">Run Audit</button>
-            </form>
+                    <div class="form-group">
+                        <label for="question-input">Focus question</label>
+                        <input type="text" id="question-input" placeholder="e.g. Is there a potential resource leak or SQL injection?">
+                    </div>
+
+                    <p id="form-hint" class="form-hint" aria-live="polite"></p>
+                    <button type="submit" id="submit-btn">Run Audit</button>
+                </form>
+            </section>
+
+            <aside class="audit-panel">
+                <div class="panel-block">
+                    <span class="panel-label">Audit Coverage</span>
+                    <ul class="coverage-list">
+                        <li>Security risk patterns</li>
+                        <li>Logic and correctness bugs</li>
+                        <li>Performance and maintainability</li>
+                        <li>Architecture and clean-code feedback</li>
+                    </ul>
+                </div>
+                <div class="panel-block compact">
+                    <span class="panel-label">Runtime</span>
+                    <strong>FastAPI + Ollama</strong>
+                    <p>Your code stays on the local review stack.</p>
+                </div>
+            </aside>
         </section>
 
-        <!-- Loader -->
         <div id="loader" class="loader-container hidden">
             <div class="spinner"></div>
-            <p>Analyzing code with local LLM... (This may take up to a minute)</p>
+            <p>Analyzing with the local model. Larger submissions can take about a minute.</p>
         </div>
 
-        <!-- Error display -->
         <div id="error-card" class="card error-card hidden">
             <h3>Review Failed</h3>
             <p id="error-message"></p>
         </div>
 
-        <!-- Result section -->
         <section id="result-section" class="result-section hidden">
-            <!-- Summary card -->
             <div class="card summary-card">
                 <div class="summary-header">
-                    <h2>Audit Summary</h2>
+                    <div>
+                        <h2>Audit Summary</h2>
+                        <p>Structured findings from CodeSentinAI</p>
+                    </div>
                     <span id="risk-badge" class="badge risk-low">Low Risk</span>
                 </div>
-                <p><strong>Submission Type:</strong> <span id="res-submission-type">-</span></p>
+                <div class="summary-metrics">
+                    <div>
+                        <span>Submission Type</span>
+                        <strong id="res-submission-type">-</strong>
+                    </div>
+                    <div>
+                        <span>Findings</span>
+                        <strong id="res-finding-count">0</strong>
+                    </div>
+                    <div>
+                        <span>Top Severity</span>
+                        <strong id="res-top-severity">None</strong>
+                    </div>
+                </div>
                 <p id="res-summary-text" class="summary-paragraph"></p>
             </div>
 
-            <!-- Findings lists -->
             <div class="findings-container">
                 <h2>Audit Findings</h2>
                 <div id="no-findings-card" class="card success-card hidden">
-                    <h3>🎉 No Issues Detected</h3>
+                    <h3>No Issues Detected</h3>
                     <p>The code looks clean, efficient, and secure! No findings were reported.</p>
                 </div>
                 <div id="findings-list">
-                    <!-- Categories and cards will be dynamically inserted here -->
                 </div>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>AutoReview-AI Dashboard — Powered by FastAPI & Ollama</p>
+        <p>CodeSentinAI Dashboard - Powered by FastAPI & Ollama</p>
     </footer>
 
     <script src="app.js"></script>

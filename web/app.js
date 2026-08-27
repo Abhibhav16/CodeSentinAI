@@ -6,21 +6,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("review-form");
     form.addEventListener("submit", handleFormSubmit);
 
-    // Clear file input when typing in textarea, and vice versa
     const codeInput = document.getElementById("code-input");
     const fileInput = document.getElementById("file-input");
+    const fileName = document.getElementById("file-name");
 
     codeInput.addEventListener("input", () => {
+        updateInputStats();
         if (codeInput.value.trim() !== "") {
             fileInput.value = "";
+            fileName.textContent = "No file selected";
         }
     });
 
     fileInput.addEventListener("change", () => {
-        if (fileInput.value !== "") {
+        const selectedFile = fileInput.files[0];
+        if (selectedFile) {
             codeInput.value = "";
+            fileName.textContent = `${selectedFile.name} (${formatBytes(selectedFile.size)})`;
+        } else {
+            fileName.textContent = "No file selected";
         }
+        updateInputStats();
     });
+
+    updateInputStats();
 });
 
 async function checkHealth() {
@@ -56,21 +65,22 @@ async function handleFormSubmit(e) {
     const errorMessage = document.getElementById("error-message");
     const resultSection = document.getElementById("result-section");
     const submitBtn = document.getElementById("submit-btn");
+    const formHint = document.getElementById("form-hint");
 
-    // Validation
     if (!code.trim() && !file) {
-        alert("Please paste some code or upload a file to review.");
+        formHint.textContent = "Paste code or upload a supported file before running an audit.";
+        formHint.className = "form-hint error";
         return;
     }
 
-    // Reset UI state
+    formHint.textContent = "";
+    formHint.className = "form-hint";
     errorCard.classList.add("hidden");
     resultSection.classList.add("hidden");
     loader.classList.remove("hidden");
     submitBtn.disabled = true;
     submitBtn.textContent = "Analyzing Code...";
 
-    // Build Form Data
     const formData = new FormData();
     if (file) {
         formData.append("file", file);
@@ -97,7 +107,6 @@ async function handleFormSubmit(e) {
             throw new Error(data.detail || "An error occurred during code analysis.");
         }
 
-        // Render Results
         renderResults(data);
         resultSection.classList.remove("hidden");
     } catch (err) {
@@ -108,24 +117,25 @@ async function handleFormSubmit(e) {
         loader.classList.add("hidden");
         submitBtn.disabled = false;
         submitBtn.textContent = "Run Audit";
-        // Refresh health status
         checkHealth();
     }
 }
 
 function renderResults(result) {
-    // 1. Render Summary Card
     const riskBadge = document.getElementById("risk-badge");
     const submissionType = document.getElementById("res-submission-type");
     const summaryText = document.getElementById("res-summary-text");
+    const findingCount = document.getElementById("res-finding-count");
+    const topSeverity = document.getElementById("res-top-severity");
 
     riskBadge.textContent = `${result.overall_risk_level} Risk`;
     riskBadge.className = `badge risk-${result.overall_risk_level}`;
     
-    submissionType.textContent = result.submission_type.replace("_", " ").toUpperCase();
+    submissionType.textContent = titleCase(result.submission_type.replace("_", " "));
+    findingCount.textContent = result.findings ? result.findings.length : 0;
+    topSeverity.textContent = getTopSeverity(result.findings);
     summaryText.textContent = result.summary;
 
-    // 2. Render Findings
     const findingsList = document.getElementById("findings-list");
     const noFindingsCard = document.getElementById("no-findings-card");
     
@@ -138,7 +148,6 @@ function renderResults(result) {
         noFindingsCard.classList.add("hidden");
     }
 
-    // Group findings by category
     const grouped = {
         security: [],
         bug: [],
@@ -156,18 +165,17 @@ function renderResults(result) {
     });
 
     const categoryHeaders = {
-        security: "🔴 Security Findings",
-        bug: "🐛 Logic & Bug Findings",
-        architecture: "🏛️ Architectural & Structural Findings",
-        clean_code: "🧼 Clean Code & Style Findings",
-        performance: "⚡ Performance Findings"
+        security: "Security Findings",
+        bug: "Logic & Bug Findings",
+        architecture: "Architecture Findings",
+        clean_code: "Clean Code Findings",
+        performance: "Performance Findings"
     };
 
     Object.keys(grouped).forEach(cat => {
         const findings = grouped[cat];
         if (findings.length === 0) return;
 
-        // Create Category Block
         const block = document.createElement("div");
         block.className = "category-block";
 
@@ -180,7 +188,6 @@ function renderResults(result) {
             const card = document.createElement("div");
             card.className = `finding-card ${f.severity}`;
 
-            // Line numbers display
             let linesStr = "N/A";
             if (f.line_start !== null && f.line_start !== undefined) {
                 if (f.line_end !== null && f.line_end !== undefined && f.line_end !== f.line_start) {
@@ -209,6 +216,63 @@ function renderResults(result) {
 
         findingsList.appendChild(block);
     });
+}
+
+function updateInputStats() {
+    const codeInput = document.getElementById("code-input");
+    const fileInput = document.getElementById("file-input");
+    const inputStats = document.getElementById("input-stats");
+    const code = codeInput.value;
+    const file = fileInput.files[0];
+
+    if (file) {
+        inputStats.textContent = formatBytes(file.size);
+        return;
+    }
+
+    if (!code.trim()) {
+        inputStats.textContent = "0 lines";
+        return;
+    }
+
+    const lines = code.split(/\r\n|\r|\n/).length;
+    inputStats.textContent = `${lines} ${lines === 1 ? "line" : "lines"} / ${formatBytes(new Blob([code]).size)}`;
+}
+
+function getTopSeverity(findings = []) {
+    if (!findings || findings.length === 0) return "None";
+
+    const severityRank = {
+        info: 1,
+        low: 2,
+        medium: 3,
+        high: 4,
+        critical: 5
+    };
+
+    const top = findings.reduce((current, finding) => {
+        const currentRank = severityRank[current] || 0;
+        const nextRank = severityRank[finding.severity] || 0;
+        return nextRank > currentRank ? finding.severity : current;
+    }, "info");
+
+    return titleCase(top);
+}
+
+function titleCase(value) {
+    return value
+        .split(" ")
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+function formatBytes(bytes) {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const value = bytes / Math.pow(1024, index);
+    return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
 function escapeHTML(str) {

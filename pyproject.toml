@@ -1,5 +1,5 @@
 [project]
-name = "autoreview-ai"
+name = "codesentinai"
 version = "0.1.0"
 description = "Developer-centric code auditing CLI tool"
 readme = "README.md"
@@ -20,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 autoreview = "autoreview.cli:app"
+codesentinai = "autoreview.cli:app"
 
 [dependency-groups]
 dev = [
