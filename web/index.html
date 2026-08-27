@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoReview-AI Web Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>AutoReview-AI</h1>
+            <div id="health-badge" class="badge unknown">Checking Ollama Status...</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Input section -->
+        <section class="card input-section">
+            <h2>Code submission</h2>
+            <form id="review-form">
+                <div class="form-group">
+                    <label for="code-input">Paste Python Code or Git Diff:</label>
+                    <textarea id="code-input" placeholder="Paste your code here..." rows="12"></textarea>
+                </div>
+
+                <div class="form-group row-group">
+                    <div class="col">
+                        <label for="file-input">Or Upload File:</label>
+                        <input type="file" id="file-input" accept=".py,.diff,.patch,.txt">
+                    </div>
+                    <div class="col">
+                        <label for="mode-select">Audit Mode Override:</label>
+                        <select id="mode-select">
+                            <option value="auto">Auto-Detect</option>
+                            <option value="dsa_problem">DSA Problem</option>
+                            <option value="pr_diff">PR Diff</option>
+                            <option value="snippet">General Snippet</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="question-input">Specific Question / Focus Context (Optional):</label>
+                    <input type="text" id="question-input" placeholder="e.g. Is there a potential resource leak or SQL injection?">
+                </div>
+
+                <button type="submit" id="submit-btn">Run Audit</button>
+            </form>
+        </section>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-container hidden">
+            <div class="spinner"></div>
+            <p>Analyzing code with local LLM... (This may take up to a minute)</p>
+        </div>
+
+        <!-- Error display -->
+        <div id="error-card" class="card error-card hidden">
+            <h3>Review Failed</h3>
+            <p id="error-message"></p>
+        </div>
+
+        <!-- Result section -->
+        <section id="result-section" class="result-section hidden">
+            <!-- Summary card -->
+            <div class="card summary-card">
+                <div class="summary-header">
+                    <h2>Audit Summary</h2>
+                    <span id="risk-badge" class="badge risk-low">Low Risk</span>
+                </div>
+                <p><strong>Submission Type:</strong> <span id="res-submission-type">-</span></p>
+                <p id="res-summary-text" class="summary-paragraph"></p>
+            </div>
+
+            <!-- Findings lists -->
+            <div class="findings-container">
+                <h2>Audit Findings</h2>
+                <div id="no-findings-card" class="card success-card hidden">
+                    <h3>🎉 No Issues Detected</h3>
+                    <p>The code looks clean, efficient, and secure! No findings were reported.</p>
+                </div>
+                <div id="findings-list">
+                    <!-- Categories and cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>AutoReview-AI Dashboard — Powered by FastAPI & Ollama</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

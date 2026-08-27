@@ -1,0 +1,14 @@
+diff --git a/math_utils.py b/math_utils.py
+index 1234567..89abcde 100644
+--- a/math_utils.py
++++ b/math_utils.py
+@@ -1,5 +1,5 @@
+ def add(a, b):
+-    return a + b
++    return a + b  # simple addition helper
+ 
+ def divide(a, b):
+-    return a / b
++    if b == 0:
++        raise ValueError("Cannot divide by zero")
++    return a / b
