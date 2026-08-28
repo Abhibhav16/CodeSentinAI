@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeSentinAI Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
     <header class="app-header">
@@ -83,7 +85,19 @@
 
         <div id="loader" class="loader-container hidden">
             <div class="spinner"></div>
-            <p>Analyzing with the local model. Larger submissions can take about a minute.</p>
+            <p class="loader-text">Analyzing with local model. Larger submissions can take about a minute.</p>
+            <div class="skeleton-container">
+                <div class="skeleton-card">
+                    <div class="skeleton-bar short"></div>
+                    <div class="skeleton-bar medium"></div>
+                    <div class="skeleton-bar long"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-bar short"></div>
+                    <div class="skeleton-bar medium"></div>
+                    <div class="skeleton-bar long"></div>
+                </div>
+            </div>
         </div>
 
         <div id="error-card" class="card error-card hidden">
@@ -92,21 +106,23 @@
         </div>
 
         <section id="result-section" class="result-section hidden">
+            <!-- Overview / Summary Panel -->
             <div class="card summary-card">
                 <div class="summary-header">
                     <div>
                         <h2>Audit Summary</h2>
-                        <p>Structured findings from CodeSentinAI</p>
+                        <p>High-level observations & stats from CodeSentinAI</p>
                     </div>
                     <span id="risk-badge" class="badge risk-low">Low Risk</span>
                 </div>
+                
                 <div class="summary-metrics">
                     <div>
                         <span>Submission Type</span>
                         <strong id="res-submission-type">-</strong>
                     </div>
                     <div>
-                        <span>Findings</span>
+                        <span>Total Findings</span>
                         <strong id="res-finding-count">0</strong>
                     </div>
                     <div>
@@ -114,16 +130,94 @@
                         <strong id="res-top-severity">None</strong>
                     </div>
                 </div>
+
+                <!-- Severity Breakdown stacked bar -->
+                <div class="breakdown-section">
+                    <span class="breakdown-label">Severity Breakdown</span>
+                    <div class="severity-bar-chart">
+                        <div class="bar-slice critical" id="bar-critical" style="width: 0%"></div>
+                        <div class="bar-slice high" id="bar-high" style="width: 0%"></div>
+                        <div class="bar-slice medium" id="bar-medium" style="width: 0%"></div>
+                        <div class="bar-slice low" id="bar-low" style="width: 0%"></div>
+                        <div class="bar-slice info" id="bar-info" style="width: 0%"></div>
+                    </div>
+                    <div class="severity-badges-row">
+                        <span class="severity-badge critical" id="badge-critical">0 Critical</span>
+                        <span class="severity-badge high" id="badge-high">0 High</span>
+                        <span class="severity-badge medium" id="badge-medium">0 Medium</span>
+                        <span class="severity-badge low" id="badge-low">0 Low</span>
+                        <span class="severity-badge info" id="badge-info">0 Info</span>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="breakdown-section">
+                    <span class="breakdown-label">Category Breakdown</span>
+                    <div class="category-badges-row">
+                        <span class="category-badge security" id="badge-cat-security">🔴 Security: 0</span>
+                        <span class="category-badge bug" id="badge-cat-bug">🐛 Bug: 0</span>
+                        <span class="category-badge architecture" id="badge-cat-architecture">🏛️ Architecture: 0</span>
+                        <span class="category-badge clean_code" id="badge-cat-clean_code">🧼 Clean Code: 0</span>
+                        <span class="category-badge performance" id="badge-cat-performance">⚡ Performance: 0</span>
+                    </div>
+                </div>
+
                 <p id="res-summary-text" class="summary-paragraph"></p>
             </div>
 
-            <div class="findings-container">
-                <h2>Audit Findings</h2>
-                <div id="no-findings-card" class="card success-card hidden">
-                    <h3>No Issues Detected</h3>
-                    <p>The code looks clean, efficient, and secure! No findings were reported.</p>
+            <!-- Detail Section: Code View on Left, Findings list on Right -->
+            <div class="details-grid">
+                <!-- Sticky Source Code Viewer -->
+                <div class="card code-viewer-card">
+                    <div class="code-viewer-header">
+                        <h3>Source Code</h3>
+                        <span id="code-viewer-filename" class="text-pill">Code</span>
+                    </div>
+                    <div class="code-container" id="code-container">
+                        <!-- Code lines are rendered here by JavaScript -->
+                        <div class="code-empty-state">No code loaded</div>
+                    </div>
                 </div>
-                <div id="findings-list">
+
+                <!-- Audit Findings Column -->
+                <div class="findings-column">
+                    <div class="card controls-card">
+                        <div class="controls-header">
+                            <h3>Audit Findings</h3>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <div class="filter-group">
+                            <span class="control-label">Filter Category:</span>
+                            <div class="filter-buttons">
+                                <button type="button" class="filter-btn active" data-category="all">All</button>
+                                <button type="button" class="filter-btn" data-category="security">🔴 Security</button>
+                                <button type="button" class="filter-btn" data-category="bug">🐛 Bug</button>
+                                <button type="button" class="filter-btn" data-category="architecture">🏛️ Arch</button>
+                                <button type="button" class="filter-btn" data-category="clean_code">🧼 Clean</button>
+                                <button type="button" class="filter-btn" data-category="performance">⚡ Perf</button>
+                            </div>
+                        </div>
+
+                        <!-- Sorting -->
+                        <div class="sort-group">
+                            <label for="sort-select" class="control-label">Sort by:</label>
+                            <select id="sort-select">
+                                <option value="severity">Severity (highest first)</option>
+                                <option value="line">Line Number</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Findings list -->
+                    <div id="findings-list">
+                    </div>
+                    
+                    <!-- Empty Findings State -->
+                    <div id="no-findings-card" class="card success-card hidden">
+                        <h3>No Issues Detected</h3>
+                        <p>The code looks clean, efficient, and secure! No findings were reported.</p>
+                    </div>
                 </div>
             </div>
         </section>
