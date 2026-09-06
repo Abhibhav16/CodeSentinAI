@@ -112,7 +112,7 @@ CodeSentinAI includes a local web-based dashboard for code auditing.
 ### 1. Start the API Server
 Start the FastAPI server using Uvicorn:
 ```bash
-uv run uvicorn autoreview.api:app --reload
+uv run python -m uvicorn autoreview.api:app --reload
 ```
 The backend API will run at `http://localhost:8000`.
 
